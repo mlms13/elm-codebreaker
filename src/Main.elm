@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import List exposing (repeat, length, map)
-import Html exposing (Html, div, text)
+import Html exposing (Html, div, text, span)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 
@@ -44,7 +44,7 @@ init =
 type Msg
   = ChangeConfig Configuration
   | Begin
-  | AddPiece GamePiece
+  | AddPiece Int GamePiece
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update message model =
@@ -55,8 +55,8 @@ update message model =
         (ChangeConfig cfg, _) -> { model | cfg = cfg }
         (Begin, Setup) -> { model | game = InGame (Board.create model.cfg) }
         (Begin, _) -> model
-        (AddPiece piece, InGame board) -> model -- TODO
-        (AddPiece p, _) -> model -- Invalid message
+        (AddPiece index piece, InGame board) -> model -- TODO
+        (AddPiece i p, _) -> model -- Invalid message
   in
     (newModel, Cmd.none)
 
@@ -74,7 +74,7 @@ renderBoard : Configuration -> Board -> Html Msg
 renderBoard cfg b =
   let
     futureCount : Int
-    futureCount = cfg.guesses - length b.turns
+    futureCount = cfg.guesses - length b.turns - 1 -- -1 for current turn
 
     futureRow : Html Msg
     futureRow =
@@ -88,28 +88,38 @@ renderBoard cfg b =
 
     prevRows : List (Html Msg)
     prevRows =
-      map renderTurn b.turns
+      map renderPreviousTurn b.turns
+
+    currentTurnRow : Html Msg
+    currentTurnRow =
+      renderActiveTurn b.current
+
   in
-    div [class "gb-game"] futureRows
+    div
+      [class "gb-game"]
+      (futureRows ++ [currentTurnRow] ++ prevRows)
 
+renderActiveTurn : List (Maybe GamePiece) -> Html Msg
+renderActiveTurn guesses =
+  div
+    [class "gb-row gb-row-active"]
+    ( map renderPiece guesses)
 
-renderTurn : (Pattern, Outcome) -> Html Msg
-renderTurn (pattern, outcome) =
+renderInactiveTurn : (List (Maybe GamePiece), (Maybe Outcome)) -> Html Msg
+renderInactiveTurn (pattern, outcome) =
   div
     [class "gb-row"]
-    ((pattern |> map Just |> renderPieces) ++ [renderOutcome outcome])
+    ((map renderPiece pattern) ++ [renderOutcome outcome])
 
-renderPieces : List (Maybe GamePiece) -> List (Html Msg)
-renderPieces l =
-  map renderPiece l
+renderPreviousTurn : (Pattern, Outcome) -> Html Msg
+renderPreviousTurn (p, o) =
+  let
+    liftMaybe : (Pattern, Outcome) -> (List (Maybe GamePiece), Maybe Outcome)
+    liftMaybe (p, o) =
+      (p |> map Just, Just o)
+  in
+    liftMaybe (p, o) |> renderInactiveTurn
 
-renderOutcome : Outcome -> Html Msg
-renderOutcome { perfect, almost } =
-  div [] []
-
-
--- renderActivePiece : Maybe GamePiece -> Html Msg
--- renderActivePiece
 
 renderPiece : Maybe GamePiece -> Html Msg
 renderPiece p =
@@ -121,3 +131,15 @@ renderPiece p =
         Just color -> "gb-piece-" ++ show color
   in
     div ["gb-piece " ++ colorClass |> class] []
+
+renderOutcome : Maybe Outcome -> Html Msg
+renderOutcome outc =
+  case outc of
+    Nothing ->
+      div [class "gb-outcome gb-outcome-empty"] []
+    Just o ->
+      div [class "gb-outcome"]
+        [ span [class ""] [o.perfect |> toString |> text]
+        , text ", "
+        , span [class ""] [o.almost |> toString |> text]
+        ]

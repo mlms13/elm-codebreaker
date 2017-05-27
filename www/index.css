@@ -6,15 +6,19 @@
 .gb-row {
   display: flex;
   justify-content: space-around;
-  margin-bottom: 20px;
+  padding: 10px;
+}
+.gb-row-active {
+  background-color: #777;
 }
 .gb-piece {
+  border: 3px solid #fff;
   border-radius: 50%;
   height: 40px;
   width: 40px;
 }
 .gb-piece-empty {
-  background-color: #ddd;
+  background-color: #ccc;
 }
 .gb-piece-red {
   background-color: #e33;
