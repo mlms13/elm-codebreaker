@@ -1,6 +1,6 @@
 module Main exposing (..)
 
-import List exposing (repeat, length, map)
+import List exposing (repeat, length, map, indexedMap)
 import Html exposing (Html, div, text, span)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
@@ -52,13 +52,33 @@ update message model =
     newModel : Model
     newModel =
       case (message, model.game) of
-        (ChangeConfig cfg, _) -> { model | cfg = cfg }
-        (Begin, Setup) -> { model | game = InGame (Board.create model.cfg) }
-        (Begin, _) -> model
-        (AddPiece index piece, InGame board) -> model -- TODO
+        (ChangeConfig cfg, _) ->
+          { model | cfg = cfg }
+        (Begin, Setup) ->
+          { model | game = InGame (Board.create model.cfg) }
+        (Begin, _) ->
+          model
+        (AddPiece index piece, InGame board) ->
+          { model | game = InGame (updateBoard index piece board) }
         (AddPiece i p, _) -> model -- Invalid message
   in
     (newModel, Cmd.none)
+
+updateBoard : Int -> GamePiece -> Board -> Board
+updateBoard pos piece b =
+  let
+    setAtPos : Int -> (Maybe GamePiece) -> List (Maybe GamePiece) -> List (Maybe GamePiece)
+    setAtPos pos val list =
+      indexedMap
+        (\i orig -> if i == pos then val else orig)
+        list
+
+    updatedTurn : List (Maybe GamePiece)
+    updatedTurn =
+      setAtPos pos (Just piece) b.current
+  in
+    { b | current = updatedTurn }
+
 
 -- VIEW
 
@@ -80,7 +100,7 @@ renderBoard cfg b =
     futureRow =
       div
         [class "gb-row"]
-        (renderPiece Nothing |> (repeat cfg.patternLen))
+        (renderInactivePiece Nothing |> (repeat cfg.patternLen))
 
     futureRows : List (Html Msg)
     futureRows =
@@ -103,13 +123,13 @@ renderActiveTurn : List (Maybe GamePiece) -> Html Msg
 renderActiveTurn guesses =
   div
     [class "gb-row gb-row-active"]
-    ( map renderPiece guesses)
+    ( indexedMap renderActivePiece guesses)
 
 renderInactiveTurn : (List (Maybe GamePiece), (Maybe Outcome)) -> Html Msg
 renderInactiveTurn (pattern, outcome) =
   div
     [class "gb-row"]
-    ((map renderPiece pattern) ++ [renderOutcome outcome])
+    (map renderInactivePiece pattern)
 
 renderPreviousTurn : (Pattern, Outcome) -> Html Msg
 renderPreviousTurn (p, o) =
@@ -120,17 +140,36 @@ renderPreviousTurn (p, o) =
   in
     liftMaybe (p, o) |> renderInactiveTurn
 
+renderInactivePiece : Maybe GamePiece -> Html Msg
+renderInactivePiece p =
+  renderPiece Nothing p
 
-renderPiece : Maybe GamePiece -> Html Msg
-renderPiece p =
+renderActivePiece : Int -> Maybe GamePiece -> Html Msg
+renderActivePiece i p =
+  renderPiece (Just i) p
+
+renderPiece : Maybe Int -> Maybe GamePiece -> Html Msg
+renderPiece index p =
   let
-    colorClass : String
-    colorClass =
+    pieceColor : String
+    pieceColor =
       case p of
         Nothing -> "gb-piece-empty"
         Just color -> "gb-piece-" ++ show color
+
+    colorClass : String
+    colorClass =
+      "gb-piece " ++ pieceColor
+
+    clickAction : List (Html.Attribute Msg)
+    clickAction =
+      case index of
+        Nothing -> []
+        Just idx -> [onClick (AddPiece idx GamePiece.Red)]
   in
-    div ["gb-piece " ++ colorClass |> class] []
+    div
+      (class colorClass :: clickAction)
+      []
 
 renderOutcome : Maybe Outcome -> Html Msg
 renderOutcome outc =
