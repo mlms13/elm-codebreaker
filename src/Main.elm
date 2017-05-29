@@ -1,6 +1,8 @@
 module Main exposing (..)
 
 import List exposing (repeat, length, map, indexedMap)
+import List.Extra exposing (getAt)
+import Maybe.Extra exposing (join)
 import Html exposing (Html, div, text, span)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
@@ -45,6 +47,7 @@ type Msg
   = ChangeConfig Configuration
   | Begin
   | AddPiece Int GamePiece
+  | CyclePiece Int
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update message model =
@@ -59,13 +62,30 @@ update message model =
         (Begin, _) ->
           model
         (AddPiece index piece, InGame board) ->
-          { model | game = InGame (updateBoard index piece board) }
+          { model | game = InGame (setPieceAt index (Just piece) board) }
         (AddPiece i p, _) -> model -- Invalid message
+
+        (CyclePiece index, InGame board) ->
+          { model | game = InGame (cyclePieceAt model.cfg index board) }
+        (CyclePiece _, _) -> model -- Invalid
   in
     (newModel, Cmd.none)
 
-updateBoard : Int -> GamePiece -> Board -> Board
-updateBoard pos piece b =
+cyclePieceAt : Configuration -> Int -> Board -> Board
+cyclePieceAt cfg pos b =
+  let
+    list : List GamePiece
+    list =
+      GamePiece.sliceForConfig cfg
+
+    next : Maybe GamePiece
+    next =
+      (getAt pos b.current) |> join |> GamePiece.cycle list
+  in
+    setPieceAt pos next b
+
+setPieceAt : Int -> Maybe GamePiece -> Board -> Board
+setPieceAt pos piece b =
   let
     setAtPos : Int -> (Maybe GamePiece) -> List (Maybe GamePiece) -> List (Maybe GamePiece)
     setAtPos pos val list =
@@ -75,7 +95,7 @@ updateBoard pos piece b =
 
     updatedTurn : List (Maybe GamePiece)
     updatedTurn =
-      setAtPos pos (Just piece) b.current
+      setAtPos pos piece b.current
   in
     { b | current = updatedTurn }
 
@@ -165,7 +185,7 @@ renderPiece index p =
     clickAction =
       case index of
         Nothing -> []
-        Just idx -> [onClick (AddPiece idx GamePiece.Red)]
+        Just idx -> [onClick (CyclePiece idx)]
   in
     div
       (class colorClass :: clickAction)

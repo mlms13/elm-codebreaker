@@ -19,6 +19,7 @@ type alias Board =
   }
 
 -- TODO: should also take a seed for the RNG
+-- TODO: should slice the list of possible pieces
 create : Configuration -> Board
 create cfg =
   { correct = repeat cfg.patternLen Red
