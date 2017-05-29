@@ -9907,21 +9907,41 @@ var _user$project$GamePiece$sliceForConfig = function (cfg) {
 	return A2(_elm_lang$core$List$take, cfg.colorCount, _user$project$GamePiece$list);
 };
 
+var _user$project$Board$advanceTurn = F2(
+	function (_p0, b) {
+		var _p1 = _p0;
+		var _p2 = _p1._0;
+		return {
+			answer: b.answer,
+			turns: A2(
+				_elm_lang$core$Basics_ops['++'],
+				b.turns,
+				{
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: _p2, _1: _p1._1},
+					_1: {ctor: '[]'}
+				}),
+			current: A2(
+				_elm_lang$core$List$repeat,
+				_elm_lang$core$List$length(_p2),
+				_elm_lang$core$Maybe$Nothing)
+		};
+	});
 var _user$project$Board$comparePattern = F2(
-	function (correct, check) {
+	function (answer, check) {
 		return {perfect: 0, almost: 0};
 	});
 var _user$project$Board$boardToOutcome = function (b) {
 	return A2(
 		_elm_lang$core$Maybe$map,
 		function (p) {
-			return A2(_user$project$Board$comparePattern, b.correct, p);
+			return A2(_user$project$Board$comparePattern, b.answer, p);
 		},
 		_elm_community$maybe_extra$Maybe_Extra$combine(b.current));
 };
 var _user$project$Board$create = function (cfg) {
 	return {
-		correct: A2(_elm_lang$core$List$repeat, cfg.patternLen, _user$project$GamePiece$Red),
+		answer: A2(_elm_lang$core$List$repeat, cfg.patternLen, _user$project$GamePiece$Red),
 		turns: {ctor: '[]'},
 		current: A2(_elm_lang$core$List$repeat, cfg.patternLen, _elm_lang$core$Maybe$Nothing)
 	};
@@ -9932,7 +9952,7 @@ var _user$project$Board$Outcome = F2(
 	});
 var _user$project$Board$Board = F3(
 	function (a, b, c) {
-		return {correct: a, turns: b, current: c};
+		return {answer: a, turns: b, current: c};
 	});
 
 var _user$project$Main$renderOutcome = function (outc) {
@@ -10032,87 +10052,133 @@ var _user$project$Main$End = F2(
 var _user$project$Main$InGame = function (a) {
 	return {ctor: 'InGame', _0: a};
 };
+var _user$project$Main$Setup = {ctor: 'Setup'};
+var _user$project$Main$init = {cfg: _user$project$Configuration$default, game: _user$project$Main$Setup};
+var _user$project$Main$Loss = {ctor: 'Loss'};
+var _user$project$Main$Win = {ctor: 'Win'};
+var _user$project$Main$checkCurrent = F3(
+	function (cfg, guess, b) {
+		var outcome = A2(_user$project$Board$comparePattern, b.answer, guess);
+		return _elm_lang$core$Native_Utils.eq(outcome.perfect, cfg.patternLen) ? A2(_user$project$Main$End, _user$project$Main$Win, b) : (_elm_lang$core$Native_Utils.eq(
+			_elm_lang$core$List$length(b.turns),
+			cfg.guesses) ? A2(_user$project$Main$End, _user$project$Main$Loss, b) : _user$project$Main$InGame(
+			A2(
+				_user$project$Board$advanceTurn,
+				{ctor: '_Tuple2', _0: guess, _1: outcome},
+				b)));
+	});
 var _user$project$Main$update = F2(
-	function (message, model) {
+	function (message, _p2) {
+		var _p3 = _p2;
+		var _p6 = _p3;
+		var _p5 = _p3.cfg;
 		var newModel = function () {
-			var _p2 = {ctor: '_Tuple2', _0: message, _1: model.game};
-			switch (_p2._0.ctor) {
+			var _p4 = {ctor: '_Tuple2', _0: message, _1: _p3.game};
+			switch (_p4._0.ctor) {
 				case 'ChangeConfig':
 					return _elm_lang$core$Native_Utils.update(
-						model,
-						{cfg: _p2._0._0});
+						_p6,
+						{cfg: _p4._0._0});
 				case 'Begin':
-					if (_p2._1.ctor === 'Setup') {
+					if (_p4._1.ctor === 'Setup') {
 						return _elm_lang$core$Native_Utils.update(
-							model,
+							_p6,
 							{
 								game: _user$project$Main$InGame(
-									_user$project$Board$create(model.cfg))
+									_user$project$Board$create(_p5))
 							});
 					} else {
-						return model;
+						return _p6;
 					}
 				case 'AddPiece':
-					if (_p2._1.ctor === 'InGame') {
+					if (_p4._1.ctor === 'InGame') {
 						return _elm_lang$core$Native_Utils.update(
-							model,
+							_p6,
 							{
 								game: _user$project$Main$InGame(
 									A3(
 										_user$project$Main$setPieceAt,
-										_p2._0._0,
-										_elm_lang$core$Maybe$Just(_p2._0._1),
-										_p2._1._0))
+										_p4._0._0,
+										_elm_lang$core$Maybe$Just(_p4._0._1),
+										_p4._1._0))
 							});
 					} else {
-						return model;
+						return _p6;
 					}
-				default:
-					if (_p2._1.ctor === 'InGame') {
+				case 'CyclePiece':
+					if (_p4._1.ctor === 'InGame') {
 						return _elm_lang$core$Native_Utils.update(
-							model,
+							_p6,
 							{
 								game: _user$project$Main$InGame(
-									A3(_user$project$Main$cyclePieceAt, model.cfg, _p2._0._0, _p2._1._0))
+									A3(_user$project$Main$cyclePieceAt, _p5, _p4._0._0, _p4._1._0))
 							});
 					} else {
-						return model;
+						return _p6;
+					}
+				default:
+					if (_p4._1.ctor === 'InGame') {
+						return _elm_lang$core$Native_Utils.update(
+							_p6,
+							{
+								game: A3(_user$project$Main$checkCurrent, _p5, _p4._0._0, _p4._1._0)
+							});
+					} else {
+						return _p6;
 					}
 			}
 		}();
 		return {ctor: '_Tuple2', _0: newModel, _1: _elm_lang$core$Platform_Cmd$none};
 	});
-var _user$project$Main$Setup = {ctor: 'Setup'};
-var _user$project$Main$init = {cfg: _user$project$Configuration$default, game: _user$project$Main$Setup};
-var _user$project$Main$Loss = {ctor: 'Loss'};
-var _user$project$Main$Win = {ctor: 'Win'};
+var _user$project$Main$Check = function (a) {
+	return {ctor: 'Check', _0: a};
+};
+var _user$project$Main$renderCheckButton = function (pattern) {
+	return A2(
+		_elm_lang$html$Html$button,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('check-button'),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html_Events$onClick(
+					_user$project$Main$Check(pattern)),
+				_1: {ctor: '[]'}
+			}
+		},
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html$text('Check'),
+			_1: {ctor: '[]'}
+		});
+};
 var _user$project$Main$CyclePiece = function (a) {
 	return {ctor: 'CyclePiece', _0: a};
 };
 var _user$project$Main$renderPiece = F2(
 	function (index, p) {
 		var clickAction = function () {
-			var _p3 = index;
-			if (_p3.ctor === 'Nothing') {
+			var _p7 = index;
+			if (_p7.ctor === 'Nothing') {
 				return {ctor: '[]'};
 			} else {
 				return {
 					ctor: '::',
 					_0: _elm_lang$html$Html_Events$onClick(
-						_user$project$Main$CyclePiece(_p3._0)),
+						_user$project$Main$CyclePiece(_p7._0)),
 					_1: {ctor: '[]'}
 				};
 			}
 		}();
 		var pieceColor = function () {
-			var _p4 = p;
-			if (_p4.ctor === 'Nothing') {
+			var _p8 = p;
+			if (_p8.ctor === 'Nothing') {
 				return 'gb-piece-empty';
 			} else {
 				return A2(
 					_elm_lang$core$Basics_ops['++'],
 					'gb-piece-',
-					_user$project$GamePiece$show(_p4._0));
+					_user$project$GamePiece$show(_p8._0));
 			}
 		}();
 		var colorClass = A2(_elm_lang$core$Basics_ops['++'], 'gb-piece ', pieceColor);
@@ -10128,8 +10194,8 @@ var _user$project$Main$renderPiece = F2(
 var _user$project$Main$renderInactivePiece = function (p) {
 	return A2(_user$project$Main$renderPiece, _elm_lang$core$Maybe$Nothing, p);
 };
-var _user$project$Main$renderInactiveTurn = function (_p5) {
-	var _p6 = _p5;
+var _user$project$Main$renderInactiveTurn = function (_p9) {
+	var _p10 = _p9;
 	return A2(
 		_elm_lang$html$Html$div,
 		{
@@ -10137,21 +10203,21 @@ var _user$project$Main$renderInactiveTurn = function (_p5) {
 			_0: _elm_lang$html$Html_Attributes$class('gb-row'),
 			_1: {ctor: '[]'}
 		},
-		A2(_elm_lang$core$List$map, _user$project$Main$renderInactivePiece, _p6._0));
+		A2(_elm_lang$core$List$map, _user$project$Main$renderInactivePiece, _p10._0));
 };
-var _user$project$Main$renderPreviousTurn = function (_p7) {
-	var _p8 = _p7;
-	var liftMaybe = function (_p9) {
-		var _p10 = _p9;
+var _user$project$Main$renderPreviousTurn = function (_p11) {
+	var _p12 = _p11;
+	var liftMaybe = function (_p13) {
+		var _p14 = _p13;
 		return {
 			ctor: '_Tuple2',
-			_0: A2(_elm_lang$core$List$map, _elm_lang$core$Maybe$Just, _p10._0),
-			_1: _elm_lang$core$Maybe$Just(_p10._1)
+			_0: A2(_elm_lang$core$List$map, _elm_lang$core$Maybe$Just, _p14._0),
+			_1: _elm_lang$core$Maybe$Just(_p14._1)
 		};
 	};
 	return _user$project$Main$renderInactiveTurn(
 		liftMaybe(
-			{ctor: '_Tuple2', _0: _p8._0, _1: _p8._1}));
+			{ctor: '_Tuple2', _0: _p12._0, _1: _p12._1}));
 };
 var _user$project$Main$renderActivePiece = F2(
 	function (i, p) {
@@ -10161,6 +10227,20 @@ var _user$project$Main$renderActivePiece = F2(
 			p);
 	});
 var _user$project$Main$renderActiveTurn = function (guesses) {
+	var complete = _elm_community$maybe_extra$Maybe_Extra$combine(guesses);
+	var checkButton = function () {
+		var _p15 = complete;
+		if (_p15.ctor === 'Nothing') {
+			return {ctor: '[]'};
+		} else {
+			return {
+				ctor: '::',
+				_0: _user$project$Main$renderCheckButton(_p15._0),
+				_1: {ctor: '[]'}
+			};
+		}
+	}();
+	var viewGuesses = A2(_elm_lang$core$List$indexedMap, _user$project$Main$renderActivePiece, guesses);
 	return A2(
 		_elm_lang$html$Html$div,
 		{
@@ -10168,12 +10248,24 @@ var _user$project$Main$renderActiveTurn = function (guesses) {
 			_0: _elm_lang$html$Html_Attributes$class('gb-row gb-row-active'),
 			_1: {ctor: '[]'}
 		},
-		A2(_elm_lang$core$List$indexedMap, _user$project$Main$renderActivePiece, guesses));
+		_elm_lang$core$List$concat(
+			{
+				ctor: '::',
+				_0: viewGuesses,
+				_1: {
+					ctor: '::',
+					_0: checkButton,
+					_1: {ctor: '[]'}
+				}
+			}));
 };
 var _user$project$Main$renderBoard = F2(
 	function (cfg, b) {
 		var currentTurnRow = _user$project$Main$renderActiveTurn(b.current);
-		var prevRows = A2(_elm_lang$core$List$map, _user$project$Main$renderPreviousTurn, b.turns);
+		var prevRows = A2(
+			_elm_lang$core$List$map,
+			_user$project$Main$renderPreviousTurn,
+			_elm_lang$core$List$reverse(b.turns));
 		var futureRow = A2(
 			_elm_lang$html$Html$div,
 			{
@@ -10212,8 +10304,8 @@ var _user$project$Main$AddPiece = F2(
 	});
 var _user$project$Main$Begin = {ctor: 'Begin'};
 var _user$project$Main$view = function (model) {
-	var _p11 = model.game;
-	switch (_p11.ctor) {
+	var _p16 = model.game;
+	switch (_p16.ctor) {
 		case 'Setup':
 			return A2(
 				_elm_lang$html$Html$button,
@@ -10228,9 +10320,9 @@ var _user$project$Main$view = function (model) {
 					_1: {ctor: '[]'}
 				});
 		case 'InGame':
-			return A2(_user$project$Main$renderBoard, model.cfg, _p11._0);
+			return A2(_user$project$Main$renderBoard, model.cfg, _p16._0);
 		default:
-			if (_p11._0.ctor === 'Win') {
+			if (_p16._0.ctor === 'Win') {
 				return A2(
 					_elm_lang$html$Html$h3,
 					{ctor: '[]'},
@@ -10256,7 +10348,7 @@ var _user$project$Main$main = _elm_lang$html$Html$program(
 		init: {ctor: '_Tuple2', _0: _user$project$Main$init, _1: _elm_lang$core$Platform_Cmd$none},
 		view: _user$project$Main$view,
 		update: _user$project$Main$update,
-		subscriptions: function (_p12) {
+		subscriptions: function (_p17) {
 			return _elm_lang$core$Platform_Sub$none;
 		}
 	})();

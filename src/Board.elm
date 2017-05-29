@@ -13,7 +13,7 @@ type alias Outcome =
   }
 
 type alias Board =
-  { correct : Pattern
+  { answer : Pattern
   , turns : List (Pattern, Outcome)
   , current : List (Maybe GamePiece)
   }
@@ -22,19 +22,27 @@ type alias Board =
 -- TODO: should slice the list of possible pieces
 create : Configuration -> Board
 create cfg =
-  { correct = repeat cfg.patternLen Red
+  { answer = repeat cfg.patternLen Red
   , turns = []
   , current = repeat cfg.patternLen Nothing
   }
 
 -- looks at a board, and if all of `current` is filled,
--- compares that `current` against `correct`
+-- compares that `current` against `answer`
 boardToOutcome : Board -> Maybe Outcome
 boardToOutcome b =
-  b.current |> combine |> map (\p -> (comparePattern b.correct p))
+  b.current |> combine |> map (\p -> (comparePattern b.answer p))
 
 comparePattern : Pattern -> Pattern -> Outcome
-comparePattern correct check =
+comparePattern answer check =
   { perfect = 0
   , almost = 0
   }
+
+advanceTurn : (Pattern, Outcome) -> Board -> Board
+advanceTurn (pattern, outcome) b =
+  { answer = b.answer
+  , turns = b.turns ++ [(pattern, outcome)]
+  , current = repeat (List.length pattern) Nothing
+  }
+

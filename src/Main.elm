@@ -8,7 +8,7 @@ import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 
 import Board exposing (Board, Pattern, Outcome)
-import GamePiece exposing (GamePiece, show)
+import GamePiece exposing (GamePiece)
 import Configuration exposing (Configuration)
 
 main : Program Never Model Msg
@@ -48,17 +48,18 @@ type Msg
   | Begin
   | AddPiece Int GamePiece
   | CyclePiece Int
+  | Check (List GamePiece)
 
 update : Msg -> Model -> (Model, Cmd Msg)
-update message model =
+update message ({cfg, game} as model) =
   let
     newModel : Model
     newModel =
-      case (message, model.game) of
-        (ChangeConfig cfg, _) ->
-          { model | cfg = cfg }
+      case (message, game) of
+        (ChangeConfig config, _) ->
+          { model | cfg = config }
         (Begin, Setup) ->
-          { model | game = InGame (Board.create model.cfg) }
+          { model | game = InGame (Board.create cfg) }
         (Begin, _) ->
           model
         (AddPiece index piece, InGame board) ->
@@ -66,8 +67,14 @@ update message model =
         (AddPiece i p, _) -> model -- Invalid message
 
         (CyclePiece index, InGame board) ->
-          { model | game = InGame (cyclePieceAt model.cfg index board) }
+          { model | game = InGame (cyclePieceAt cfg index board) }
         (CyclePiece _, _) -> model -- Invalid
+
+        (Check pattern, InGame board) ->
+          { model | game = (checkCurrent cfg pattern board) }
+
+        (Check _, _) ->
+          model -- Invalid
   in
     (newModel, Cmd.none)
 
@@ -99,6 +106,19 @@ setPieceAt pos piece b =
   in
     { b | current = updatedTurn }
 
+checkCurrent : Configuration -> Pattern -> Board -> Game
+checkCurrent cfg guess b =
+  let
+    outcome : Outcome
+    outcome =
+      Board.comparePattern b.answer guess
+  in
+    if outcome.perfect == cfg.patternLen then
+      End Win b
+    else if length b.turns == cfg.guesses then
+      End Loss b
+    else
+      Board.advanceTurn (guess, outcome) b |> InGame
 
 -- VIEW
 
@@ -128,7 +148,7 @@ renderBoard cfg b =
 
     prevRows : List (Html Msg)
     prevRows =
-      map renderPreviousTurn b.turns
+      b.turns |> List.reverse |> map renderPreviousTurn
 
     currentTurnRow : Html Msg
     currentTurnRow =
@@ -141,9 +161,24 @@ renderBoard cfg b =
 
 renderActiveTurn : List (Maybe GamePiece) -> Html Msg
 renderActiveTurn guesses =
-  div
-    [class "gb-row gb-row-active"]
-    ( indexedMap renderActivePiece guesses)
+  let
+    viewGuesses : List (Html Msg)
+    viewGuesses =
+      indexedMap renderActivePiece guesses
+
+    complete : Maybe (List GamePiece)
+    complete =
+      Maybe.Extra.combine guesses
+
+    checkButton : List (Html Msg)
+    checkButton =
+      case complete of
+        Nothing -> []
+        Just pattern -> [renderCheckButton pattern]
+  in
+    div
+      [class "gb-row gb-row-active"]
+      (List.concat [viewGuesses, checkButton])
 
 renderInactiveTurn : (List (Maybe GamePiece), (Maybe Outcome)) -> Html Msg
 renderInactiveTurn (pattern, outcome) =
@@ -160,6 +195,10 @@ renderPreviousTurn (p, o) =
   in
     liftMaybe (p, o) |> renderInactiveTurn
 
+renderCheckButton : Pattern -> Html Msg
+renderCheckButton pattern =
+  Html.button [class "check-button", onClick (Check pattern)] [text "Check"]
+
 renderInactivePiece : Maybe GamePiece -> Html Msg
 renderInactivePiece p =
   renderPiece Nothing p
@@ -175,7 +214,7 @@ renderPiece index p =
     pieceColor =
       case p of
         Nothing -> "gb-piece-empty"
-        Just color -> "gb-piece-" ++ show color
+        Just color -> "gb-piece-" ++ GamePiece.show color
 
     colorClass : String
     colorClass =
