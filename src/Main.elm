@@ -124,11 +124,25 @@ checkCurrent cfg guess b =
 
 view : Model -> Html Msg
 view model =
-  case model.game of
-    Setup -> Html.button [onClick Begin] [text "Start!"]
-    InGame board -> renderBoard model.cfg board
-    End Win _ -> Html.h3 [] [text "You win!"]
-    End Loss _ -> Html.h3 [] [text "Game over. :("]
+  let
+    css : Html Msg
+    css =
+      Html.node "link" [ Html.Attributes.rel "stylesheet", Html.Attributes.href "index.css" ] []
+
+    game : Html Msg
+    game =
+      case model.game of
+        Setup -> Html.button [onClick Begin] [text "Start!"]
+        InGame board -> renderBoard model.cfg board
+        End Win _ -> Html.h3 [] [text "You win!"]
+        End Loss _ -> Html.h3 [] [text "Game over. :("]
+
+    content : List (Html Msg)
+    content =
+      [ game ]
+  in
+    div [ class "gb-container"] content
+
 
 renderBoard : Configuration -> Board -> Html Msg
 renderBoard cfg b =

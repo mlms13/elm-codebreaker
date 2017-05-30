@@ -1,3 +1,9 @@
+# packages
 node_modules/
 elm-stuff/
+
+# editor
 .vscode
+
+# debug
+src/index.css

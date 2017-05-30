@@ -9786,41 +9786,21 @@ var _user$project$Configuration$Configuration = F4(
 
 var _user$project$GamePiece$cycle = F2(
 	function (list, piece) {
-		var check = F3(
-			function (orig, _p0, curr) {
-				var _p1 = _p0;
-				return _p1._0 ? {
-					ctor: '_Tuple2',
-					_0: false,
-					_1: _elm_lang$core$Maybe$Just(curr)
-				} : {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.eq(curr, orig),
-					_1: _p1._1
-				};
-			});
-		var accumulate = F2(
-			function (orig, list) {
-				return _elm_lang$core$Tuple$second(
-					A3(
-						_elm_lang$core$List$foldl,
-						F2(
-							function (curr, acc) {
-								return A3(check, orig, acc, curr);
-							}),
-						{ctor: '_Tuple2', _0: false, _1: _elm_lang$core$Maybe$Nothing},
-						list));
-			});
-		var _p2 = piece;
-		if (_p2.ctor === 'Nothing') {
+		var _p0 = piece;
+		if (_p0.ctor === 'Nothing') {
 			return _elm_lang$core$List$head(list);
 		} else {
-			return A2(accumulate, _p2._0, list);
+			return A2(
+				_elm_lang$core$Maybe$andThen,
+				function (idx) {
+					return A2(_elm_community$list_extra$List_Extra$getAt, idx + 1, list);
+				},
+				A2(_elm_community$list_extra$List_Extra$elemIndex, _p0._0, list));
 		}
 	});
 var _user$project$GamePiece$show = function (gp) {
-	var _p3 = gp;
-	switch (_p3.ctor) {
+	var _p1 = gp;
+	switch (_p1.ctor) {
 		case 'Red':
 			return 'red';
 		case 'Orange':
@@ -9849,8 +9829,8 @@ var _user$project$GamePiece$Orange = {ctor: 'Orange'};
 var _user$project$GamePiece$Red = {ctor: 'Red'};
 var _user$project$GamePiece$list = function () {
 	var matchAll = function (c) {
-		var _p4 = c;
-		switch (_p4.ctor) {
+		var _p2 = c;
+		switch (_p2.ctor) {
 			case 'Red':
 				return {ctor: '_Tuple0'};
 			case 'Orange':
@@ -10304,44 +10284,72 @@ var _user$project$Main$AddPiece = F2(
 	});
 var _user$project$Main$Begin = {ctor: 'Begin'};
 var _user$project$Main$view = function (model) {
-	var _p16 = model.game;
-	switch (_p16.ctor) {
-		case 'Setup':
-			return A2(
-				_elm_lang$html$Html$button,
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Begin),
-					_1: {ctor: '[]'}
-				},
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html$text('Start!'),
-					_1: {ctor: '[]'}
-				});
-		case 'InGame':
-			return A2(_user$project$Main$renderBoard, model.cfg, _p16._0);
-		default:
-			if (_p16._0.ctor === 'Win') {
+	var game = function () {
+		var _p16 = model.game;
+		switch (_p16.ctor) {
+			case 'Setup':
 				return A2(
-					_elm_lang$html$Html$h3,
-					{ctor: '[]'},
+					_elm_lang$html$Html$button,
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html$text('You win!'),
+						_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Begin),
 						_1: {ctor: '[]'}
-					});
-			} else {
-				return A2(
-					_elm_lang$html$Html$h3,
-					{ctor: '[]'},
+					},
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html$text('Game over. :('),
+						_0: _elm_lang$html$Html$text('Start!'),
 						_1: {ctor: '[]'}
 					});
+			case 'InGame':
+				return A2(_user$project$Main$renderBoard, model.cfg, _p16._0);
+			default:
+				if (_p16._0.ctor === 'Win') {
+					return A2(
+						_elm_lang$html$Html$h3,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('You win!'),
+							_1: {ctor: '[]'}
+						});
+				} else {
+					return A2(
+						_elm_lang$html$Html$h3,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('Game over. :('),
+							_1: {ctor: '[]'}
+						});
+				}
+		}
+	}();
+	var content = {
+		ctor: '::',
+		_0: game,
+		_1: {ctor: '[]'}
+	};
+	var css = A3(
+		_elm_lang$html$Html$node,
+		'link',
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$rel('stylesheet'),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$href('index.css'),
+				_1: {ctor: '[]'}
 			}
-	}
+		},
+		{ctor: '[]'});
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('gb-container'),
+			_1: {ctor: '[]'}
+		},
+		content);
 };
 var _user$project$Main$main = _elm_lang$html$Html$program(
 	{

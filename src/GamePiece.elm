@@ -1,5 +1,5 @@
 module GamePiece exposing (..)
-import Tuple
+import List.Extra exposing (elemIndex, getAt)
 import Configuration exposing (Configuration)
 
 type GamePiece
@@ -47,20 +47,8 @@ sliceForConfig cfg =
 
 cycle : List GamePiece -> Maybe GamePiece -> Maybe GamePiece
 cycle list piece =
-  let
-    accumulate : GamePiece -> List GamePiece -> Maybe GamePiece
-    accumulate orig list =
-      List.foldl (\curr acc -> check orig acc curr) (False, Nothing) list |> Tuple.second
-
-    check : GamePiece -> (Bool, Maybe GamePiece) -> GamePiece -> (Bool, Maybe GamePiece)
-    check orig (takeNext, val) curr =
-      if takeNext then
-        (False, Just curr)
-      else
-        (curr == orig, val)
-  in
-    case piece of
-      Nothing ->
-        List.head list
-      Just p ->
-        accumulate p list
+  case piece of
+    Nothing ->
+      List.head list
+    Just p ->
+      Maybe.andThen (\idx -> getAt (idx + 1) list) (elemIndex p list)
