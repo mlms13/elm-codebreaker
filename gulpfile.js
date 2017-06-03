@@ -3,9 +3,14 @@ var gulp = require('gulp'),
 
     // gulp plugins and utilities
     stylus = require('gulp-stylus'),
+    uglify = require('gulp-uglify'),
 
     // configuration
     paths = {
+      js: {
+        all: './www/**/*.js',
+        dest: './www'
+      },
       stylus: {
         main: './assets/styl/index.styl',
         all: ['./assets/styl/**/*.styl'],
@@ -19,10 +24,17 @@ gulp.task('stylus', function () {
     .pipe(gulp.dest(paths.stylus.dest));
 });
 
-gulp.task('build', ['stylus']);
+gulp.task("uglify-js", function () {
+  return gulp.src(paths.js.all)
+    .pipe(uglify())
+    .pipe(gulp.dest(paths.js.dest));
+});
+
+gulp.task('build', ['stylus', 'uglify-js']);
 
 gulp.task('watch', ['build'], function () {
   gulp.watch(paths.stylus.all, ['stylus']);
+  gulp.watch(paths.js.all, ['uglify-js']);
 });
 
 
