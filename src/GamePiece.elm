@@ -1,4 +1,5 @@
 module GamePiece exposing (..)
+import Random exposing(Generator)
 import List.Extra exposing (elemIndex, getAt)
 import Configuration exposing (Configuration)
 
@@ -40,6 +41,21 @@ list =
         -- add new instances to the list below!
   in
     [Red, Orange, Yellow, Green, Blue, Purple, Pink, Brown]
+
+generatePiece : Int -> Generator GamePiece
+generatePiece n =
+  let
+    colors : List GamePiece
+    colors =
+      List.take n list
+
+    sample : List GamePiece -> Generator (Maybe GamePiece)
+    sample list =
+      Random.map (\idx -> List.Extra.getAt idx list) (Random.int 0 (n - 1))
+  in
+    Random.map (\color -> Maybe.withDefault Red color) (sample colors)
+
+
 
 sliceForConfig : Configuration -> List GamePiece
 sliceForConfig cfg =

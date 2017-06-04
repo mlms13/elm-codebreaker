@@ -5,6 +5,7 @@ import List exposing (repeat, foldl)
 import List.Extra exposing (zip)
 import Maybe exposing (map)
 import Maybe.Extra exposing (combine, unwrap)
+import Random exposing (Generator, Seed)
 import Configuration exposing (Configuration)
 import GamePiece exposing (..)
 
@@ -27,12 +28,25 @@ type alias Board =
 
 -- TODO: should also take a seed for the RNG
 -- TODO: should slice the list of possible pieces
-create : Configuration -> Board
-create cfg =
-  { answer = repeat cfg.patternLen Red
+create : Configuration -> Seed -> Board
+create cfg seed =
+  { answer = randomPattern cfg seed
   , turns = []
   , current = repeat cfg.patternLen Nothing
   }
+
+randomPattern : Configuration -> Seed -> Pattern
+randomPattern cfg seed =
+  let
+    listGenerator : Generator Pattern
+    listGenerator =
+      Random.list cfg.patternLen (generatePiece cfg.colorCount)
+
+    -- generated : (Pattern, Seed)
+    (pattern, _) =
+      Random.step listGenerator seed
+  in
+    pattern
 
 emptyOutcome : Outcome
 emptyOutcome =

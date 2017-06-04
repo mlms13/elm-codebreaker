@@ -3,6 +3,9 @@ module Main exposing (..)
 import List exposing (repeat, length, map, indexedMap)
 import List.Extra exposing (getAt)
 import Maybe.Extra exposing (join)
+import Random exposing (Seed)
+import Time exposing (Time)
+import Task exposing (Task)
 import Html exposing (Html, div, text, span)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
@@ -45,38 +48,50 @@ init =
 
 type Msg
   = ChangeConfig Configuration
-  | Begin
+  | GetTimeAndBegin
+  | Begin Seed
   | AddPiece Int GamePiece
   | CyclePiece Int
   | Check (List GamePiece)
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update message ({cfg, game} as model) =
-  let
-    newModel : Model
-    newModel =
-      case (message, game) of
-        (ChangeConfig config, _) ->
-          { model | cfg = config }
-        (Begin, Setup) ->
-          { model | game = InGame (Board.create cfg) }
-        (Begin, _) ->
-          model
-        (AddPiece index piece, InGame board) ->
-          { model | game = InGame (setPieceAt index (Just piece) board) }
-        (AddPiece i p, _) -> model -- Invalid message
+  case (message, game) of
+    (ChangeConfig config, _) ->
+      ({ model | cfg = config }, Cmd.none )
 
-        (CyclePiece index, InGame board) ->
-          { model | game = InGame (cyclePieceAt cfg index board) }
-        (CyclePiece _, _) -> model -- Invalid
+    (GetTimeAndBegin, Setup) ->
+      let
+        timeToSeed : Time -> Seed
+        timeToSeed t =
+          t |> round |> Random.initialSeed
+      in
+        ( model, Task.perform (\t -> Begin (timeToSeed t)) Time.now)
 
-        (Check pattern, InGame board) ->
-          { model | game = (checkCurrent cfg pattern board) }
+    (Begin seed, Setup) ->
+     ( { model | game = InGame (Board.create cfg seed) }, Cmd.none)
 
-        (Check _, _) ->
-          model -- Invalid
-  in
-    (newModel, Cmd.none)
+    (AddPiece index piece, InGame board) ->
+      (
+        { model | game = InGame (setPieceAt index (Just piece) board) }
+        , Cmd.none
+      )
+
+    (CyclePiece index, InGame board) ->
+      (
+        { model | game = InGame (cyclePieceAt cfg index board) }
+        , Cmd.none
+      )
+
+    (Check pattern, InGame board) ->
+      ({ model | game = (checkCurrent cfg pattern board) }, Cmd.none)
+
+    -- Unreachable
+    (GetTimeAndBegin, _) -> (model, Cmd.none)
+    (Begin _, _) -> (model, Cmd.none)
+    (AddPiece i p, _) -> (model, Cmd.none)
+    (CyclePiece _, _) -> (model, Cmd.none)
+    (Check _, _) -> (model, Cmd.none)
 
 cyclePieceAt : Configuration -> Int -> Board -> Board
 cyclePieceAt cfg pos b =
@@ -132,7 +147,7 @@ view model =
     game : Html Msg
     game =
       case model.game of
-        Setup -> Html.button [onClick Begin] [text "Start!"]
+        Setup -> Html.button [onClick GetTimeAndBegin] [text "Start!"]
         InGame board -> renderBoard model.cfg board
         End Win _ -> Html.h3 [] [text "You win!"]
         End Loss _ -> Html.h3 [] [text "Game over. :("]
