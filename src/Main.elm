@@ -198,7 +198,7 @@ renderInactiveTurn : (List (Maybe GamePiece), (Maybe Outcome)) -> Html Msg
 renderInactiveTurn (pattern, outcome) =
   div
     [class "gb-row"]
-    (map renderInactivePiece pattern)
+    ((map renderInactivePiece pattern) ++ [renderOutcome outcome])
 
 renderPreviousTurn : (Pattern, Outcome) -> Html Msg
 renderPreviousTurn (p, o) =

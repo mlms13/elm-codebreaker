@@ -10294,7 +10294,14 @@ var _user$project$Main$renderInactiveTurn = function (_p9) {
 			_0: _elm_lang$html$Html_Attributes$class('gb-row'),
 			_1: {ctor: '[]'}
 		},
-		A2(_elm_lang$core$List$map, _user$project$Main$renderInactivePiece, _p10._0));
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			A2(_elm_lang$core$List$map, _user$project$Main$renderInactivePiece, _p10._0),
+			{
+				ctor: '::',
+				_0: _user$project$Main$renderOutcome(_p10._1),
+				_1: {ctor: '[]'}
+			}));
 };
 var _user$project$Main$renderPreviousTurn = function (_p11) {
 	var _p12 = _p11;
