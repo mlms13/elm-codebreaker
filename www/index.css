@@ -9,40 +9,60 @@
   padding: 10px;
 }
 .gb-row-active {
-  background-color: #777;
+  background-color: #aaa;
 }
 .gb-piece {
-  border: 3px solid #fff;
   border-radius: 50%;
   height: 40px;
   width: 40px;
 }
-.gb-piece-empty {
-  background-color: #ccc;
-}
 .gb-piece-red {
   background-color: #e33;
+  border: 1px solid #f66;
+  box-shadow: 1px 1px 0 1px #d51212;
 }
 .gb-piece-orange {
   background-color: #e73;
+  border: 1px solid #f3a070;
+  box-shadow: 1px 1px 0 1px #d55912;
 }
 .gb-piece-yellow {
   background-color: #ed3;
+  border: 1px solid #f3e770;
+  box-shadow: 1px 1px 0 1px #d5c412;
 }
 .gb-piece-green {
   background-color: #3c3;
+  border: 1px solid #70db70;
+  box-shadow: 1px 1px 0 1px #29a329;
 }
 .gb-piece-blue {
   background-color: #36e;
+  border: 1px solid #7094f3;
+  box-shadow: 1px 1px 0 1px #1247d5;
 }
 .gb-piece-purple {
   background-color: #93c;
+  border: 1px solid #b870db;
+  box-shadow: 1px 1px 0 1px #7a29a3;
 }
 .gb-piece-pink {
   background-color: #e69;
+  border: 1px solid #f394b8;
+  box-shadow: 1px 1px 0 1px #e72970;
 }
 .gb-piece-brown {
   background-color: #963;
+  border: 1px solid #c9945e;
+  box-shadow: 1px 1px 0 1px #7a5229;
+}
+.gb-piece-empty {
+  background-color: #ccc;
+  border: 1px solid transparent;
+}
+.gb-row-active .gb-piece-empty {
+  border-color: #aaa;
+  box-shadow: inset 1px 1px 0 1px rgba(0,0,0,0.4);
 }
 .gb-outome {
   backgorund: #ddd;

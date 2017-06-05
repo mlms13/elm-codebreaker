@@ -1,3 +1,5 @@
+@import variables
+
 .gb-game
   margin-left: auto
   margin-right: auto
@@ -9,32 +11,36 @@
   padding 10px
 
   &-active
-    background-color: #777
+    background-color: #aaa
 
 .gb-piece
-  border: 3px solid #fff
   border-radius: 50%
   height: 40px
   width: 40px
 
+gamePiece($name, $color, $light, $dark)
+  .gb-piece-{$name}
+    background-color: $color
+    border: 1px solid $light
+    box-shadow: 1px 1px 0 1px $dark
+
+gamePiece("red", $red, $redLight, $redDark)
+gamePiece("orange", $orange, $orangeLight, $orangeDark)
+gamePiece("yellow", $yellow, $yellowLight, $yellowDark)
+gamePiece("green", $green, $greenLight, $greenDark)
+gamePiece("blue", $blue, $blueLight, $blueDark)
+gamePiece("purple", $purple, $purpleLight, $purpleDark)
+gamePiece("pink", $pink, $pinkLight, $pinkDark)
+gamePiece("brown", $brown, $brownLight, $brownDark)
+
 .gb-piece-empty
   background-color: #ccc
-.gb-piece-red
-  background-color: #e33
-.gb-piece-orange
-  background-color: #e73
-.gb-piece-yellow
-  background-color: #ed3
-.gb-piece-green
-  background-color: #3c3
-.gb-piece-blue
-  background-color: #36e
-.gb-piece-purple
-  background-color: #93c
-.gb-piece-pink
-  background-color: #e69
-.gb-piece-brown
-  background-color: #963
+  border: 1px solid transparent
+
+.gb-row-active
+  .gb-piece-empty
+    border-color: #aaa
+    box-shadow: inset 1px 1px 0 1px rgba(0,0,0,0.4)
 
 .gb-outome
   backgorund: #ddd
