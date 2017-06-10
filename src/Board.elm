@@ -26,21 +26,31 @@ type alias Board =
   , current : List (Maybe GamePiece)
   }
 
--- TODO: should also take a seed for the RNG
--- TODO: should slice the list of possible pieces
+-- create a board from the current configuration,
+-- using the provided seed and a sliced list of colors
+-- based on config colorCount
 create : Configuration -> Seed -> Board
 create cfg seed =
-  { answer = randomPattern cfg seed
-  , turns = []
-  , current = repeat cfg.patternLen Nothing
-  }
+  let
+    patternLen : Int
+    patternLen =
+      Configuration.patternLenToInt cfg.patternLen
+  in
+    { answer = randomPattern cfg seed
+    , turns = []
+    , current = repeat patternLen Nothing
+    }
 
 randomPattern : Configuration -> Seed -> Pattern
 randomPattern cfg seed =
   let
+    patternLen : Int
+    patternLen =
+      Configuration.patternLenToInt cfg.patternLen
+
     listGenerator : Generator Pattern
     listGenerator =
-      Random.list cfg.patternLen (generatePiece cfg.colorCount)
+      Random.list patternLen (generatePiece cfg.colorCount)
 
     -- generated : (Pattern, Seed)
     (pattern, _) =

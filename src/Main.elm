@@ -127,10 +127,18 @@ checkCurrent cfg guess b =
     outcome : Outcome
     outcome =
       Board.comparePattern b.answer guess
+
+    patternLen : Int
+    patternLen =
+      Configuration.patternLenToInt cfg.patternLen
+
+    guessLen : Int
+    guessLen =
+      Configuration.guessToInt cfg.guesses
   in
-    if outcome.perfect == cfg.patternLen then
+    if outcome.perfect == patternLen then
       End Win b
-    else if length b.turns == cfg.guesses then
+    else if length b.turns == guessLen then
       End Loss b
     else
       Board.advanceTurn (guess, outcome) b |> InGame
@@ -162,12 +170,18 @@ view model =
 renderBoard : Configuration -> Board -> Html Msg
 renderBoard cfg b =
   let
+    patternLen : Int
+    patternLen =
+      Configuration.patternLenToInt cfg.patternLen
+
     futureCount : Int
-    futureCount = cfg.guesses - length b.turns - 1 -- -1 for current turn
+    futureCount =
+      -- all guesses, minus used, minus 1 for current turn
+      (Configuration.guessToInt cfg.guesses) - length b.turns - 1
 
     inactivePieces : List (Html Msg)
     inactivePieces =
-      (renderInactivePiece Nothing |> repeat cfg.patternLen)
+      (renderInactivePiece Nothing |> repeat patternLen)
 
     futureRow : Html Msg
     futureRow =
