@@ -3,7 +3,7 @@
 .gb-game
   margin-left: auto
   margin-right: auto
-  max-width: 360px // TODO: change depending on pattern length
+  max-width: 440px // TODO: change depending on pattern length
 
 .gb-row
   display: flex
@@ -42,9 +42,25 @@ gamePiece("brown", $brown, $brownLight, $brownDark)
     border-color: #aaa
     box-shadow: inset 1px 1px 0 1px rgba(0,0,0,0.4)
 
-.gb-outome
+.check-button
+  background-color: darken($green, 15%)
+  border: 0
+  border-radius: 3px
+  box-shadow: 1px 1px 0 1px darken($greenDark, 10%)
+  color: white
+  cursor: pointer
+  font-size: 20px
+  width: 50px
+
+  &.disabled
+    background-color: #171
+    box-shadow: none
+    color: $green
+    cursor: not-allowed
+
+.gb-outcome
   backgorund: #ddd
-  width: 60px
+  width: 50px
 
   &-empty
     background: #fff

@@ -154,9 +154,9 @@ view model =
 
     content : List (Html Msg)
     content =
-      [ game ]
+      [game]
   in
-    div [ class "gb-container"] content
+    div [class "gb-container"] content
 
 
 renderBoard : Configuration -> Board -> Html Msg
@@ -165,11 +165,15 @@ renderBoard cfg b =
     futureCount : Int
     futureCount = cfg.guesses - length b.turns - 1 -- -1 for current turn
 
+    inactivePieces : List (Html Msg)
+    inactivePieces =
+      (renderInactivePiece Nothing |> repeat cfg.patternLen)
+
     futureRow : Html Msg
     futureRow =
       div
         [class "gb-row"]
-        (renderInactivePiece Nothing |> (repeat cfg.patternLen))
+        (inactivePieces ++ [div [class "gb-outcome empty"] []])
 
     futureRows : List (Html Msg)
     futureRows =
@@ -188,6 +192,10 @@ renderBoard cfg b =
       [class "gb-game"]
       (futureRows ++ [currentTurnRow] ++ prevRows)
 
+checkIcon : Html a
+checkIcon =
+  Html.i [class "ion-checkmark"] []
+
 renderActiveTurn : List (Maybe GamePiece) -> Html Msg
 renderActiveTurn guesses =
   let
@@ -199,11 +207,15 @@ renderActiveTurn guesses =
     complete =
       Maybe.Extra.combine guesses
 
+    disabledCheckButton : Html a
+    disabledCheckButton =
+      Html.button [class "check-button disabled" ] [checkIcon]
+
     checkButton : List (Html Msg)
     checkButton =
       case complete of
-        Nothing -> []
-        Just pattern -> [renderCheckButton pattern]
+        Nothing -> [disabledCheckButton]
+        Just pattern -> [enabledCheckButton pattern]
   in
     div
       [class "gb-row gb-row-active"]
@@ -224,9 +236,9 @@ renderPreviousTurn (p, o) =
   in
     liftMaybe (p, o) |> renderInactiveTurn
 
-renderCheckButton : Pattern -> Html Msg
-renderCheckButton pattern =
-  Html.button [class "check-button", onClick (Check pattern)] [text "Check"]
+enabledCheckButton : Pattern -> Html Msg
+enabledCheckButton pattern =
+  Html.button [class "check-button", onClick (Check pattern)] [checkIcon]
 
 renderInactivePiece : Maybe GamePiece -> Html Msg
 renderInactivePiece p =

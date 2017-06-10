@@ -1,7 +1,7 @@
 .gb-game {
   margin-left: auto;
   margin-right: auto;
-  max-width: 360px;
+  max-width: 440px;
 }
 .gb-row {
   display: flex;
@@ -64,10 +64,26 @@
   border-color: #aaa;
   box-shadow: inset 1px 1px 0 1px rgba(0,0,0,0.4);
 }
-.gb-outome {
-  backgorund: #ddd;
-  width: 60px;
+.check-button {
+  background-color: #2bad2b;
+  border: 0;
+  border-radius: 3px;
+  box-shadow: 1px 1px 0 1px #259325;
+  color: #fff;
+  cursor: pointer;
+  font-size: 20px;
+  width: 50px;
 }
-.gb-outome-empty {
+.check-button.disabled {
+  background-color: #171;
+  box-shadow: none;
+  color: #3c3;
+  cursor: not-allowed;
+}
+.gb-outcome {
+  backgorund: #ddd;
+  width: 50px;
+}
+.gb-outcome-empty {
   background: #fff;
 }
